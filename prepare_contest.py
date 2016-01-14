@@ -17,21 +17,8 @@ CODEFORCES_URL = 'http://codeforces.com'
 EPS = 1e-6
 
 """
-./prepare_contest.py -n upsolving -u https://official.contest.yandex.com/ukrcamp2015a/contest/1517/problems/ -c ukrcamp2015/cookie.json -j Y
-
+./prepare_contest.py -n upsolving -c ukrcamp2015/cookie.json -j Y https://official.contest.yandex.com/ukrcamp2015a/contest/1517/problems/
 """
-
-def add_options():
-    usage = '%prog [options] [source code]'
-    parser = OptionParser(usage=usage)
-    parser.add_option('-j', '--judge', dest='online_judge', help='Online Judge with problem/contest.')
-    parser.add_option('-u', '--contest_url', dest='contest_url', help="Download the specific contest. \
-                                                                    If the PROBLEM_ID isn't specific, \
-                                                                    then download all problems in the contest.")
-    parser.add_option('-c', '--cookies', dest='cookies_path', help="Cookies to connect server")
-    parser.add_option('-n', '--contest_name', help="Verbose contest name")
-
-    return parser.parse_args()
 
 def node_to_string(node):
     return ''.join([node.text] + [etree.tostring(c).decode('utf-8') for c in node.getchildren()])
@@ -131,17 +118,29 @@ def prepare_dir(contest_folder, name, tests):
 
 
 def main():
-    global options
-    (options, args) = add_options()
+    usage = '%prog [options] <contest_url>'
+    parser = OptionParser(usage=usage)
+    parser.add_option('-j', '--judge', dest='online_judge', help='Online Judge with problem/contest.')
+    parser.add_option('-u', '--contest_url', dest='contest_url', help="Download the specific contest. \
+                                                                    If the PROBLEM_ID isn't specific, \
+                                                                    then download all problems in the contest.")
+    parser.add_option('-c', '--cookies', dest='cookies_path', help="Cookies to connect server")
+    parser.add_option('-n', '--contest_name', help="Verbose contest name")
 
+    (options, args) = parser.parse_args()
 
-    contest_url = urllib.parse.urlparse(options.contest_url)
+    if len(args) != 1:
+        parser.error("url not specified")
+
+    contest_url = urllib.parse.urlparse(args[0])
     print(contest_url)
     online_judge_url = contest_url.netloc
     contest_path = contest_url.path
+    contest_name = options.contest_name
 
-    if options.online_judge == "codeforces" or options.online_judge == "CF":
+    if online_judge_url == "codeforces.com" or options.online_judge == "codeforces" or options.online_judge == "CF":
         online_judge = CodeForces()
+        contest_name = contest_url.path.split('/')[-1]
     elif options.online_judge == "yandex" or options.online_judge == "Y":
         cookies_json = json.load( open(options.cookies_path, "r") )
         cookies = "; ".join([c["name"] + "=" + c["value"] for c in cookies_json])
@@ -151,7 +150,7 @@ def main():
         print("Specify OJ")
         sys.exit(1)
 
-    contest_folder = os.path.join('.', online_judge.name, options.contest_name)
+    contest_folder = os.path.join('.', online_judge.name, contest_name)
     src_folder = os.path.join(contest_folder, 'src')
     test_folder = os.path.join(contest_folder, 'test')
     bin_folder = os.path.join(contest_folder, 'bin')
