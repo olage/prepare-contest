@@ -94,7 +94,7 @@ class Yandex():
         return tests
 
 def prepare_dir(contest_folder, name, tests):
-    name = name.replace(' ', '_').replace('"', '').replace('.', '').replace('\\', '').replace('/', '').replace(',', '')
+    name = name.replace(' ', '_').replace('"', '').replace('.', '').replace('\\', '').replace('/', '').replace(',', '').replace('’', '')
     problem_folder = os.path.join(contest_folder, name)
     print(problem_folder)
     if not os.path.exists(problem_folder):
@@ -162,7 +162,7 @@ def main():
 
     problems = online_judge.download_contest(contest_path)
 
-    print(problems)
+ #   print(problems)
 
     for name, tests in problems:
         prepare_dir(contest_folder, name, tests)
